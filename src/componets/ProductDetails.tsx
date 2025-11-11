@@ -1,26 +1,27 @@
-import { Link } from "react-router-dom";
-import { useStore } from "../GlobalStore";
-import EmptyStar from "./UI/EmptyStar";
-import FullStar from "./UI/FullStar";
-import HalfStart from "./UI/HalfStart";
+import { useEffect , useState} from "react"
+import { useParams } from "react-router-dom"
+import EmptyStar from "./UI/EmptyStar"
+import FullStar from "./UI/FullStar"
+import HalfStart from "./UI/HalfStart"
 
-export default function Cart() {
+function ProductDetails () {
+    const  [productDetail , setProductDetail] = useState<any>([])
+    const {id} = useParams()
 
-  const { cart, setCart } = useStore();
-  
+    const api = `https://dummyjson.com/products/${id}`
 
-  const subtotal = cart.reduce((total, item) => {
-    const discountedPrice = item.discountPercentage > 0
-      ? item.price * (1 - item.discountPercentage / 100)
-      : item.price;
-    return total + (discountedPrice * item.quantity);
-  }, 0);
-  const taxRate = 0.05; 
-  const tax = subtotal * taxRate;
-  const total = subtotal + tax;
-  
+    async function getProduct() {
+        try {
+            const response =  await fetch(api)
+            const singleProduct = await response.json()
+            setProductDetail(singleProduct)
+            
+        } catch (error) {
+            console.log(error); 
+        }
+    }
 
-  const getRatings = (rating: number) => {
+    const getRatings = (rating: number) => {
     const clampedRating = Math.max(0, Math.min(5, rating));
     const numArray = Array.from({ length: 5 }, (_, index) => {
       const starPosition = index + 1;
@@ -40,69 +41,13 @@ export default function Cart() {
     );
   };
 
-  const handleQuantityDecrease = (id: number) => {
-    const updatedCart = [...cart];
-    const itemToBeUpdated = updatedCart.find(item => item.id === id);
-
-   const removeItem = (id : any) => cart.filter((item) =>  item.id !== id)
-    if (!itemToBeUpdated) return 
-    itemToBeUpdated.quantity = itemToBeUpdated.quantity - 1;
-    if (itemToBeUpdated.quantity >= 1) {
-        setCart(updatedCart)
-    } else {
-        setCart(removeItem(id))
-    }
-  }
-  
-
-  const handleQuantityIncrease = (id: number) => {
-    const updatedCart = [...cart]
-    const itemToBeUpdated = updatedCart.find((item) => item.id === id )
-    if(!itemToBeUpdated) return
-    itemToBeUpdated.quantity += 1
-    
-     
-     
-     
-    setCart(updatedCart)
-  }
-
-  if (!cart.length)
-    return (
-      <div className="p-6 bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-        <a href="#">
-          <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Your cart is empty</h5>
-        </a>
-        <p className="mb-3 font-normal text-gray-700 dark:text-gray-400">You can add multiple shopping items any time by adding it to cart.</p>
-        <Link
-          to="/"
-          className="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-        >
-          Start Shopping
-          <svg
-            className="rtl:rotate-180 w-3.5 h-3.5 ms-2"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 14 10"
-          >
-            <path
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M1 5h12m0 0L9 1m4 4L9 9"
-            />
-          </svg>
-        </Link>
-      </div>
-    );
-
-  return (
-    <div className="">
-      {cart.map((product: any) => (
-        <div
-          key={product.id}
+    useEffect(() => {
+      getProduct()
+    } , [])
+    return(
+        <>
+        <div className="bg-blue-400 text-3xl text-center"> details of cart is working : {id} </div>
+ <div
           className="w-full bg-white border border-gray-200 mb-2 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700"
         >
           <div className="flex justify-evenly items-center">
@@ -110,50 +55,33 @@ export default function Cart() {
               <a href="#">
                 <img
                   className="p-8 rounded-t-lg"
-                  src={product.thumbnail}
+                  src={productDetail.thumbnail}
                   width={200}
                   height={200}
-                  alt="product image"
+                  alt="productDetail image"
                 />
               </a>
             </div>
             <div className="px-5 pb-5">
               <a href="#">
-                <h5 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">{product.title}</h5>
+                <h5 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">{productDetail.title}</h5>
               </a>
               <div className="flex items-center mt-2.5 mb-5">
-                {getRatings(product.rating)}
+                {getRatings(productDetail.rating)}
                 <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-sm dark:bg-blue-200 dark:text-blue-800 ms-3">
-                  {product.rating}
+                  {productDetail.rating}
                 </span>
               </div>
+              
               <div className="flex items-center justify-between">
-                <div className="flex flex-col">
-                  {product.discountPercentage > 0 ? (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                          ${(product.price * (1 - product.discountPercentage / 100)).toFixed(2)}
-                        </span>
-                        <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-sm font-medium dark:bg-green-900 dark:text-green-300">
-                          -{product.discountPercentage}%
-                        </span>
-                      </div>
-                      <span className="text-sm text-gray-500 line-through dark:text-gray-400">
-                        ${product.price}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-3xl font-bold text-gray-900 dark:text-white">${product.price}</span>
-                  )}
-                </div>
+                <span className="text-3xl font-bold text-gray-900 dark:text-white">${productDetail.price}</span>
               </div>
             </div>
             <div className="px-5 pb-5">
               <button
                 type="button"
                 className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
-                onClick={() => handleQuantityDecrease(product.id)}
+                // onClick={() => handleQuantityDecrease(productDetail.id)}
               >
                 -
               </button>
@@ -161,14 +89,14 @@ export default function Cart() {
                 type="button"
                 className="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
               >
-                {product.quantity}
+                {productDetail.quantity}
               </button>
 
               <button
                 type="button"
                 
                 className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
-                onClick={() => handleQuantityIncrease(product.id)}
+                // onClick={() => handleQuantityIncrease(product.id)}
               >
             
                 +
@@ -176,10 +104,10 @@ export default function Cart() {
             </div>
           </div>
         </div>
-      ))}
+      
 
 
-    <div className="bg-gradient-to-r from-white to-gray-50 border-t-2 border-blue-200 shadow-xl backdrop-blur-sm dark:from-gray-800 dark:to-gray-900 dark:border-blue-600 fixed bottom-0 left-0 right-0 z-10">
+    {/* <div className="bg-gradient-to-r from-white to-gray-50 border-t-2 border-blue-200 shadow-xl backdrop-blur-sm dark:from-gray-800 dark:to-gray-900 dark:border-blue-600 fixed bottom-0 left-0 right-0 z-10">
         <div className="w-full mx-auto max-w-screen-xl p-6">
           <div className="flex items-center justify-between">
             <div className="flex flex-col items-center bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 min-w-[100px]">
@@ -219,8 +147,12 @@ export default function Cart() {
             </button>
           </div>
         </div>
-    </div>
+    </div> */}
 
-    </div>
-  );
-}
+    </>
+
+        
+    )
+} 
+
+export default ProductDetails

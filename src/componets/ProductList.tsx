@@ -4,18 +4,20 @@ import HalfStart from "./UI/HalfStart";
 import EmptyStar from "./UI/EmptyStar";
 import { useStore } from "../GlobalStore";
 import type { Product } from "../types";
+import { Link } from "react-router-dom";
+import Filters from "./Filters";
 
 function ProductList() {
-  const api = "https://dummyjson.com/products";
+  const api = "https://dummyjson.com/products?limit=0";
 
   const [products, setProducts] = useState<Product[]>([]);
-  const {cart, setCart} = useStore();
+  const { cart, setCart } = useStore();
+  const [searchTerm, setSearchTerm] = useState("");
 
   async function getAllProduct() {
     try {
       const response = await fetch(api);
       const allProducts = await response.json();
-      console.log(allProducts);
       setProducts(allProducts.products);
     } catch (error) {
       console.log(error);
@@ -43,31 +45,39 @@ function ProductList() {
   };
 
   useEffect(() => {
-    console.log(cart);
-  }, [cart]);
+    console.log(searchTerm);
+  }, [searchTerm]);
 
   useEffect(() => {
     getAllProduct();
   }, []);
 
   return (
+    <>
+    <div className="">
+
+      <Filters
+        categories={[]}
+        setSearchTerm={setSearchTerm}
+      />
+    </div>
     <div className="grid grid-cols-3 gap-4 ">
       {products.map((product: Product) => (
-        <div
+          <div
           key={product.id}
           className="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700"
-        >
-          <a href="#">
+          >
+          <Link to={`/products/${product.id}`}>
             <img
               className="p-8 rounded-t-lg"
               src={product.thumbnail}
               alt="product image"
-            />
-          </a>
+              />
+          </Link>
           <div className="px-5 pb-5">
-            <a href="#">
+            <Link to={`/products/${product.id}`}>
               <h5 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">{product.title}</h5>
-            </a>
+            </Link>
             <div className="flex items-center mt-2.5 mb-5">
               {getRatings(product.rating)}
               <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-sm dark:bg-blue-200 dark:text-blue-800 ms-3">
@@ -75,19 +85,36 @@ function ProductList() {
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-3xl font-bold text-gray-900 dark:text-white">${product.price}</span>
+              <div className="flex flex-col">
+                {product.discountPercentage > 0 ? (
+                    <>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                        ${(product.price * (1 - product.discountPercentage / 100)).toFixed(2)}
+                      </span>
+                      <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-sm font-medium dark:bg-green-900 dark:text-green-300">
+                        -{product.discountPercentage}%
+                      </span>
+                    </div>
+                    <span className="text-sm text-gray-500 line-through dark:text-gray-400">${product.price}</span>
+                  </>
+                ) : (
+                    <span className="text-3xl font-bold text-gray-900 dark:text-white">${product.price}</span>
+                )}
+              </div>
               <button
                 onClick={() => setCart([{ ...product, quantity: 1 }, ...cart])}
-                disabled={cart.some((item) => item.id === product.id ) }
+                disabled={cart.some((item) => item.id === product.id)}
                 className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                {cart.some((item)=> item.id === product.id ) ? "In Cart" : "Add to Cart"}
+                >
+                {cart.some((item) => item.id === product.id) ? "In Cart" : "Add to Cart"}
               </button>
             </div>
           </div>
         </div>
       ))}
     </div>
+      </>
   );
 }
 

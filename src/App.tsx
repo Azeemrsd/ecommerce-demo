@@ -4,6 +4,7 @@ import ProductList from "./componets/ProductList";
 import Layout from "./layout/Layout";
 import Cart from "./componets/Cart";
 import { GlobalStoreProvider } from "./GlobalStore";
+import ProductDetails from "./componets/ProductDetails1";
 
 function App() {
   return (
@@ -13,9 +14,10 @@ function App() {
         <Route index element={<Navigate to="/products" replace />} />
         <Route path="products" element={<ProductList />} />
         <Route path="cart" element={<Cart />} />
+        <Route path="products/:id" element={<ProductDetails />} />
         <Route path="*" element={<Navigate to="/products" replace />} />
       </Route>
-</Routes>
+     </Routes>
     </GlobalStoreProvider>
   );
 }
